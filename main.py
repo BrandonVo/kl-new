@@ -10,9 +10,18 @@ KL_URL = "https://www.klwines.com/"
 
 Result = namedtuple('Result', ['product', 'url'])
 
-def get_soup(url):
+def get_soup_results():
     html = requests.get(KL_NEW_URL, headers = {'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.54 Safari/537.36'}).text
-    return BeautifulSoup(html, 'html.parser')
+    search_soup = BeautifulSoup(html, 'html.parser')
+    items = search_soup.find_all("div", class_="tf-product clearfix")
+    results = []
+    for item in items:
+        a = item.find("a")
+        product = a.contents[0].strip()
+        url = KL_URL + a['href']
+        result = Result(product, url)
+        results.append(result)
+    return results
 
 
 def write_results(results):
@@ -38,16 +47,7 @@ def compare_items(results):
 
 
 if __name__ == '__main__':
-    url = KL_NEW_URL
-    search_soup = get_soup(url)
-    items = search_soup.find_all("div", class_="tf-product clearfix")
-    results = []
-    for item in items:
-        a = item.find("a")
-        product = a.contents[0].strip()
-        url = KL_URL + a['href']
-        result = Result(product, url)
-        results.append(result)
+    results = get_soup_results()
     write_results(results)
     new_items = compare_items(results)
     print(new_items)
